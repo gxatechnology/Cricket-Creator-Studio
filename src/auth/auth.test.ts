@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isSupabaseConfigured, getSupabaseConfig } from './supabaseClient';
+import {
+  isSupabaseConfigured,
+  getSupabaseConfig,
+  isPlaceholder,
+  getSupabaseClient,
+} from './supabaseClient';
 import { getAuthAccessToken, setAuthAccessToken } from './AuthContext';
 import {
   loadWorkspaceFromStorage,
@@ -15,6 +20,34 @@ test('isSupabaseConfigured returns false when env variables are missing or place
   // By default in test environment without real secrets, it should detect unconfigured state safely
   assert.equal(typeof config.isConfigured, 'boolean');
   assert.ok(Array.isArray(config.missingKeys));
+});
+
+test('isPlaceholder correctly flags templates, bracketed values and unconfigured keys', () => {
+  assert.equal(isPlaceholder(''), true);
+  assert.equal(isPlaceholder(undefined), true);
+  assert.equal(isPlaceholder('<MY_SUPABASE_PUBLISHABLE_KEY>'), true);
+  assert.equal(isPlaceholder('MY_SUPABASE_ANON_KEY'), true);
+  assert.equal(isPlaceholder('your-anon-publishable-key'), true);
+  assert.equal(isPlaceholder('https://your-project-id.supabase.co'), true);
+
+  // Real or valid keys should NOT be flagged as placeholders
+  assert.equal(isPlaceholder('sb_publishable_8Aoi4RV9YrnNKsYC53u1CQ_FXenqLu6'), false);
+  assert.equal(isPlaceholder('https://axgqwndnmkkicgrqldtg.supabase.co'), false);
+});
+
+test('Supabase client supports sb_publishable_ key configuration', () => {
+  const originalEnv = { ...process.env };
+  try {
+    process.env.VITE_SUPABASE_URL = 'https://axgqwndnmkkicgrqldtg.supabase.co';
+    process.env.VITE_SUPABASE_ANON_KEY = 'sb_publishable_test_token_abcdef123456';
+
+    assert.equal(isSupabaseConfigured(), true);
+    const client = getSupabaseClient();
+    assert.ok(client !== null);
+    assert.ok(typeof client.auth?.signInWithOAuth === 'function');
+  } finally {
+    process.env = originalEnv;
+  }
 });
 
 test('Auth token storage and retrieval for render API calls', () => {
