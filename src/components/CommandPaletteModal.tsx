@@ -39,7 +39,7 @@ export function CommandPaletteModal() {
     const base: CommandAction[] = [
       {
         id: 'cmd-account',
-        label: 'Creator Account & Security (Google Sign In / Guest)',
+        label: 'Account Settings',
         group: 'Account',
         run: () => setAccountModalOpen(true),
       },

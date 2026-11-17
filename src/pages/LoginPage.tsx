@@ -32,6 +32,13 @@ export function LoginPage() {
   const { workspace } = useStudio();
   const [isSigningIn, setIsSigningIn] = useState(false);
 
+  // If an authenticated user visits /login, redirect directly to /dashboard
+  React.useEffect(() => {
+    if (!isLoading && !isGuest && user) {
+      navigate('/dashboard', true);
+    }
+  }, [isLoading, isGuest, user, navigate]);
+
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true);
     try {

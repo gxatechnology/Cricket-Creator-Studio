@@ -105,12 +105,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAuthAccessToken(data.session.access_token);
         }
 
-        // Clean up OAuth query parameters (e.g. ?code=...) if present
-        if (typeof window !== 'undefined' && window.location.search.includes('code=')) {
+        // Clean up OAuth query parameters (e.g. ?code=...) or hash tokens if present
+        if (
+          typeof window !== 'undefined' &&
+          (window.location.search.includes('code=') ||
+            window.location.hash.includes('access_token=') ||
+            window.location.search.includes('error='))
+        ) {
           const url = new URL(window.location.href);
+          const wasAuthCallback = url.searchParams.has('code') || url.hash.includes('access_token=');
           url.searchParams.delete('code');
           url.searchParams.delete('state');
-          window.history.replaceState({}, document.title, url.pathname + url.search);
+          url.searchParams.delete('error');
+          url.searchParams.delete('error_description');
+
+          // If returning from Google OAuth, ensure the creator lands on /dashboard
+          const destination =
+            wasAuthCallback && (url.pathname === '/' || url.pathname === '/login' || url.pathname === '/get-started')
+              ? '/dashboard'
+              : url.pathname;
+
+          window.history.replaceState({}, document.title, destination + url.search);
         }
       })
       .catch((err) => {
@@ -158,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

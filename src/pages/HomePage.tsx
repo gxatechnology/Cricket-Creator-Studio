@@ -27,14 +27,18 @@ import {
   Volume2,
   X,
   Youtube,
+  LogIn,
+  LogOut,
+  Settings,
 } from 'lucide-react';
 import { Link, useRouter } from '../router/RouterContext';
 import { useAuth } from '../auth/AuthContext';
 import { useStudio } from '../context/StudioContext';
+import { UserAccountDropdown } from '../components/UserAccountDropdown';
 
 export function HomePage() {
   const { navigate } = useRouter();
-  const { isGuest, profile, isConfigured } = useAuth();
+  const { isGuest, profile, isConfigured, signOut } = useAuth();
   const { setWizardOpen, setAccountModalOpen } = useStudio();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState<'field' | 'quiz' | 'preview' | 'export'>('field');
@@ -79,7 +83,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#080E1A] text-slate-100 flex flex-col font-sans selection:bg-[#D4AF37]/30 selection:text-white">
       {/* ---------------- NAVIGATION HEADER ---------------- */}
-      <header className="sticky top-0 z-40 w-full max-w-[100vw] bg-[#080E1A]/90 backdrop-blur-md border-b border-slate-800/80 transition-all overflow-x-hidden">
+      <header className="sticky top-0 z-40 w-full max-w-[100vw] bg-[#080E1A]/90 backdrop-blur-md border-b border-slate-800/80 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
@@ -120,35 +124,7 @@ export function HomePage() {
 
           {/* Action CTAs */}
           <div className="hidden md:flex items-center gap-3">
-            {!isGuest && profile ? (
-              <button
-                type="button"
-                onClick={() => setAccountModalOpen(true)}
-                className="px-3 py-1.5 rounded-lg bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 text-xs font-medium text-slate-200 flex items-center gap-2 transition-colors"
-              >
-                {profile.avatarUrl ? (
-                  <img
-                    src={profile.avatarUrl}
-                    alt={profile.name}
-                    className="w-4 h-4 rounded-full object-cover border border-[#D4AF37]"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-4 h-4 rounded-full bg-[#D4AF37] text-[#080E1A] font-bold text-[9px] flex items-center justify-center">
-                    {profile.name.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
-                <span className="max-w-[90px] truncate">{profile.name}</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAccountModalOpen(true)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors"
-              >
-                Sign In
-              </button>
-            )}
+            <UserAccountDropdown onOpenSettings={() => setAccountModalOpen(true)} />
 
             <button
               type="button"
@@ -221,17 +197,44 @@ export function HomePage() {
             </div>
 
             <div className="pt-3 border-t border-slate-800 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setAccountModalOpen(true);
-                }}
-                className="w-full min-h-[44px] rounded-lg bg-[#131E38] text-slate-200 text-xs font-semibold flex items-center justify-center gap-2"
-              >
-                <Shield className="w-4 h-4 text-[#D4AF37]" />
-                <span>{isGuest ? 'Sign In / Account' : `Creator Account (${profile?.name})`}</span>
-              </button>
+              {!isGuest && profile ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setAccountModalOpen(true);
+                    }}
+                    className="w-full min-h-[44px] rounded-lg bg-[#131E38] text-slate-200 text-xs font-semibold flex items-center justify-center gap-2"
+                  >
+                    <Settings className="w-4 h-4 text-[#D4AF37]" />
+                    <span>Account Settings ({profile.name})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut();
+                    }}
+                    className="w-full min-h-[44px] rounded-lg bg-red-950/40 border border-red-700/50 text-red-200 text-xs font-semibold flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/login');
+                  }}
+                  className="w-full min-h-[44px] rounded-lg bg-[#131E38] text-slate-200 text-xs font-semibold flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-4 h-4 text-[#D4AF37]" />
+                  <span>Sign In</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -1160,13 +1163,19 @@ export function HomePage() {
             <Link to="/studio" className="hover:text-slate-200 transition-colors">
               Studio
             </Link>
-            <button
-              type="button"
-              onClick={() => setAccountModalOpen(true)}
-              className="hover:text-slate-200 transition-colors"
-            >
-              {isGuest ? 'Sign In / Guest' : 'Account'}
-            </button>
+            {isGuest ? (
+              <Link to="/login" className="hover:text-slate-200 transition-colors">
+                Sign In
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAccountModalOpen(true)}
+                className="hover:text-slate-200 transition-colors"
+              >
+                Account Settings
+              </button>
+            )}
           </div>
 
           <div className="text-slate-500 font-mono text-[11px]">

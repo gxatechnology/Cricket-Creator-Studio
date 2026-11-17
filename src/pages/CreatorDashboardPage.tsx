@@ -28,6 +28,7 @@ import { useAuth } from '../auth/AuthContext';
 import { evaluateProjectReadiness } from '../engine/readinessChecker';
 import { buildProjectPackageZip } from '../engine/packaging';
 import type { CricketProject } from '../types/studio';
+import { UserAccountDropdown } from '../components/UserAccountDropdown';
 
 export function CreatorDashboardPage() {
   const { navigate } = useRouter();
@@ -89,7 +90,7 @@ export function CreatorDashboardPage() {
   return (
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#080E1A] text-slate-100 flex flex-col font-sans">
       {/* ---------------- TOP NAVBAR ---------------- */}
-      <header className="sticky top-0 z-40 h-16 w-full max-w-[100vw] bg-[#0A1120] border-b border-slate-800/80 px-3 sm:px-6 lg:px-8 flex items-center justify-between overflow-x-hidden">
+      <header className="sticky top-0 z-40 h-16 w-full max-w-[100vw] bg-[#0A1120] border-b border-slate-800/80 px-3 sm:px-6 lg:px-8 flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             to="/"
@@ -136,37 +137,8 @@ export function CreatorDashboardPage() {
 
           <div className="hidden sm:block h-5 w-[1px] bg-slate-800" />
 
-          {/* Account Pill */}
-          <button
-            type="button"
-            onClick={() => setAccountModalOpen(true)}
-            aria-label="Creator Account & Settings"
-            title={!isGuest && profile ? `Account: ${profile.name}` : 'Sign In / Account'}
-            className="px-2 sm:pl-2 sm:pr-2.5 py-1.5 rounded-lg bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 text-xs font-medium text-slate-200 flex items-center gap-1.5 sm:gap-2 transition-colors shrink-0 min-h-[36px]"
-          >
-            {!isGuest && profile ? (
-              <>
-                {profile.avatarUrl ? (
-                  <img
-                    src={profile.avatarUrl}
-                    alt={profile.name}
-                    className="w-4 h-4 rounded-full object-cover border border-[#D4AF37]"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-4 h-4 rounded-full bg-[#D4AF37] text-[#080E1A] font-bold text-[9px] flex items-center justify-center">
-                    {profile.name.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
-                <span className="hidden sm:inline max-w-[80px] truncate">{profile.name}</span>
-              </>
-            ) : (
-              <>
-                <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-                <span className="hidden sm:inline text-slate-300">Guest</span>
-              </>
-            )}
-          </button>
+          {/* Account Dropdown */}
+          <UserAccountDropdown onOpenSettings={() => setAccountModalOpen(true)} />
         </div>
       </header>
 
@@ -275,7 +247,7 @@ export function CreatorDashboardPage() {
         </div>
 
         {/* ---------------- PROJECT BROWSER & LIST ---------------- */}
-        <div className="space-y-4">
+        <div id="creator-projects-section" className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-display font-bold text-white">Your Episodes & Projects</h2>

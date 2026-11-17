@@ -16,6 +16,7 @@ import { useStudio } from '../context/StudioContext';
 import { useAuth } from '../auth/AuthContext';
 import { useRouter } from '../router/RouterContext';
 import type { AspectRatio, StudioModuleId } from '../types/studio';
+import { UserAccountDropdown } from './UserAccountDropdown';
 
 const MODULE_TITLES: Record<StudioModuleId, string> = {
   dashboard: 'Project Dashboard',
@@ -58,7 +59,7 @@ export function TopStudioBar() {
   };
 
   return (
-    <header className="h-14 w-full max-w-[100vw] overflow-x-hidden shrink-0 bg-[#0C1426] border-b border-slate-800/80 px-2 sm:px-5 flex items-center justify-between gap-2 sm:gap-6">
+    <header className="h-14 w-full max-w-[100vw] shrink-0 bg-[#0C1426] border-b border-slate-800/80 px-2 sm:px-5 flex items-center justify-between gap-2 sm:gap-6">
       {/* Zone 1: Contextual Workspace Breadcrumb & Navigation */}
       <div className="flex items-center gap-2 min-w-0">
         {/* Mobile Nav Toggle */}
@@ -195,35 +196,7 @@ export function TopStudioBar() {
         <div className="h-5 w-[1px] bg-slate-800/80 mx-0.5 hidden sm:block" aria-hidden="true" />
 
         {/* Creator Account Entry Point */}
-        <button
-          type="button"
-          onClick={() => setAccountModalOpen(true)}
-          title={!isGuest && profile ? `Creator: ${profile.name} (${profile.email})` : 'Account & Sign In'}
-          className="px-2 sm:pl-2 sm:pr-2.5 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 hover:border-[#D4AF37]/50 text-xs font-medium text-slate-200 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap shrink-0"
-        >
-          {!isGuest && profile ? (
-            <>
-              {profile.avatarUrl ? (
-                <img
-                  src={profile.avatarUrl}
-                  alt={profile.name}
-                  className="w-4 h-4 rounded-full object-cover border border-[#D4AF37]"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="w-4 h-4 rounded-full bg-[#D4AF37] text-[#080E1A] font-bold text-[9px] flex items-center justify-center">
-                  {profile.name.slice(0, 1).toUpperCase()}
-                </div>
-              )}
-              <span className="hidden sm:inline max-w-[85px] truncate font-medium">{profile.name}</span>
-            </>
-          ) : (
-            <>
-              <User className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden sm:inline text-slate-300">Account</span>
-            </>
-          )}
-        </button>
+        <UserAccountDropdown onOpenSettings={() => setAccountModalOpen(true)} />
       </div>
     </header>
   );

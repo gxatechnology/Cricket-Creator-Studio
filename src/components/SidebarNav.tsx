@@ -217,7 +217,7 @@ export function SidebarNav() {
               {!isGuest && profile ? profile.name : 'Guest Mode (Local)'}
             </span>
           </div>
-          <span className="text-[10px] text-[#D4AF37] font-semibold shrink-0">Account</span>
+          <span className="text-[10px] text-[#D4AF37] font-semibold shrink-0">Settings</span>
         </button>
       </div>
     </div>

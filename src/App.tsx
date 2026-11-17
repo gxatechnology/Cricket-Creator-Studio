@@ -30,13 +30,27 @@ function StudioLoadingScreen() {
 }
 
 function MainAppRoutes() {
-  const { currentPath } = useRouter();
+  const { currentPath, navigate } = useRouter();
   const { accountModalOpen, setAccountModalOpen } = useStudio();
+
+  // If user navigates to /settings, open the Account Settings modal
+  React.useEffect(() => {
+    if (currentPath === '/settings') {
+      setAccountModalOpen(true);
+    }
+  }, [currentPath, setAccountModalOpen]);
+
+  const handleCloseAccountModal = () => {
+    setAccountModalOpen(false);
+    if (currentPath === '/settings') {
+      navigate('/dashboard');
+    }
+  };
 
   return (
     <>
       {currentPath === '/' && <HomePage />}
-      {currentPath === '/dashboard' && <CreatorDashboardPage />}
+      {(currentPath === '/dashboard' || currentPath === '/settings') && <CreatorDashboardPage />}
       {(currentPath === '/login' || currentPath === '/get-started') && <LoginPage />}
       {currentPath.startsWith('/studio') && (
         <Suspense fallback={<StudioLoadingScreen />}>
@@ -49,7 +63,7 @@ function MainAppRoutes() {
       <CommandPaletteModal />
       <AccountModal
         isOpen={accountModalOpen}
-        onClose={() => setAccountModalOpen(false)}
+        onClose={handleCloseAccountModal}
       />
     </>
   );
