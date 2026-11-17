@@ -1,4 +1,5 @@
 import type { RenderSettings } from './rendererTypes';
+import { getRenderApiHeaders } from './renderApiHelper';
 
 export const ACTIVE_RENDER_CHECKPOINT_KEY =
   'cricket_creator_studio_active_render_job_v1';
@@ -114,6 +115,7 @@ export async function fetchServerRenderJob(
   if (typeof fetch === 'undefined') return null;
   try {
     const res = await fetch(`/api/render/jobs/${encodeURIComponent(jobId)}`, {
+      headers: getRenderApiHeaders(),
       cache: 'no-store',
     });
     if (!res.ok) return null;
@@ -127,7 +129,10 @@ export async function fetchServerRenderJob(
 export async function listServerRenderJobs(): Promise<ServerRenderJobRecord[]> {
   if (typeof fetch === 'undefined') return [];
   try {
-    const res = await fetch('/api/render/jobs', { cache: 'no-store' });
+    const res = await fetch('/api/render/jobs', {
+      headers: getRenderApiHeaders(),
+      cache: 'no-store',
+    });
     if (!res.ok) return [];
     const data = (await res.json()) as { jobs?: ServerRenderJobRecord[] };
     return Array.isArray(data.jobs) ? data.jobs : [];
@@ -141,6 +146,7 @@ export async function cancelServerRenderJob(jobId: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/render/jobs/${encodeURIComponent(jobId)}/cancel`, {
       method: 'POST',
+      headers: getRenderApiHeaders(),
     });
     return res.ok;
   } catch {

@@ -6,6 +6,11 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createServer as createViteServer } from 'vite';
+import {
+  authenticateRenderRequest,
+  initServerSupabase,
+  verifyJobOwnership,
+} from './src/server/authMiddleware';
 
 const execFileAsync = promisify(execFile);
 
@@ -63,6 +68,7 @@ export interface PersistedJobLogEntry {
 
 export interface PersistedRenderJob {
   jobId: string;
+  ownerId: string;
   projectId: string;
   projectTitle: string;
   status: ServerRenderJobStatus;
@@ -310,6 +316,7 @@ async function loadPersistedJobsFromDisk(): Promise<void> {
       const raw = await fsp.readFile(jobJsonPath, 'utf8');
       const job = JSON.parse(raw) as PersistedRenderJob;
       if (!job.jobId || !Array.isArray(job.segments)) continue;
+      job.ownerId = job.ownerId || 'guest:local';
       if (job.status === 'rendering' || job.status === 'finalizing') {
         job.status = 'interrupted';
         appendJobLog(
@@ -354,6 +361,7 @@ function isJobActivelyRunning(job: PersistedRenderJob): boolean {
 
 async function startServer() {
   await loadPersistedJobsFromDisk();
+  initServerSupabase();
   const app = express();
 
   app.get('/api/render/capabilities', async (_req, res) => {
@@ -361,9 +369,14 @@ async function startServer() {
     res.json(caps);
   });
 
-  app.get('/api/render/jobs', (_req, res) => {
+  // Protect all render job execution, polling, and finalization endpoints
+  app.use('/api/render/jobs', authenticateRenderRequest);
+
+  app.get('/api/render/jobs', (req, res) => {
+    const userId = req.user?.id || 'guest:local';
     const jobs = Array.from(activeJobs.values())
       .map((r) => r.job)
+      .filter((j) => (j.ownerId || 'guest:local') === userId)
       .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
     res.json({ jobs });
   });
@@ -373,6 +386,11 @@ async function startServer() {
     const runtime = activeJobs.get(safeId);
     if (!runtime) {
       res.status(404).json({ error: 'Render job not found.' });
+      return;
+    }
+    const ownership = verifyJobOwnership(runtime.job.ownerId, req.user);
+    if (!ownership.allowed) {
+      res.status(403).json({ error: ownership.reason });
       return;
     }
     res.json({ job: runtime.job });
@@ -465,6 +483,7 @@ async function startServer() {
 
     const job: PersistedRenderJob = {
       jobId: safeId,
+      ownerId: req.user?.id || 'guest:local',
       projectId: String(req.body?.projectId || 'unknown'),
       projectTitle: String(req.body?.projectTitle || 'Cricket Episode'),
       status: 'rendering',
@@ -516,6 +535,11 @@ async function startServer() {
       const runtime = activeJobs.get(safeId);
       if (!runtime || !Number.isInteger(index) || index < 0) {
         res.status(404).json({ error: 'Render job not found or invalid segment index.' });
+        return;
+      }
+      const ownership = verifyJobOwnership(runtime.job.ownerId, req.user);
+      if (!ownership.allowed) {
+        res.status(403).json({ error: ownership.reason });
         return;
       }
       if (runtime.job.status === 'cancelled') {
@@ -631,6 +655,11 @@ async function startServer() {
       res.status(404).json({ error: 'Render job not found for resume.' });
       return;
     }
+    const ownership = verifyJobOwnership(runtime.job.ownerId, req.user);
+    if (!ownership.allowed) {
+      res.status(403).json({ error: ownership.reason });
+      return;
+    }
     if (runtime.job.status === 'cancelled') {
       res.status(409).json({ error: 'Cancelled render jobs cannot be resumed.' });
       return;
@@ -695,6 +724,11 @@ async function startServer() {
     const safeId = sanitizeJobId(String(req.params.jobId));
     const runtime = activeJobs.get(safeId);
     if (runtime) {
+      const ownership = verifyJobOwnership(runtime.job.ownerId, req.user);
+      if (!ownership.allowed) {
+        res.status(403).json({ error: ownership.reason });
+        return;
+      }
       runtime.job.status = 'cancelled';
       runtime.job.error = 'Render cancelled by creator.';
       appendJobLog(runtime.job, 'warn', 'Job cancelled; cleaning up temporary segment files.');
@@ -709,6 +743,11 @@ async function startServer() {
     const runtime = activeJobs.get(safeId);
     if (!runtime || runtime.job.segments.length === 0) {
       res.status(404).json({ error: 'Render job or segments missing.' });
+      return;
+    }
+    const ownership = verifyJobOwnership(runtime.job.ownerId, req.user);
+    if (!ownership.allowed) {
+      res.status(403).json({ error: ownership.reason });
       return;
     }
     if (runtime.job.status === 'cancelled') {
@@ -895,6 +934,14 @@ async function startServer() {
 
   app.delete('/api/render/jobs/:jobId', async (req, res) => {
     const safeId = sanitizeJobId(String(req.params.jobId));
+    const runtime = activeJobs.get(safeId);
+    if (runtime) {
+      const ownership = verifyJobOwnership(runtime.job.ownerId, req.user);
+      if (!ownership.allowed) {
+        res.status(403).json({ error: ownership.reason });
+        return;
+      }
+    }
     await cleanupJobDir(safeId);
     res.json({ ok: true });
   });
