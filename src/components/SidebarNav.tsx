@@ -10,10 +10,12 @@ import {
   PlaySquare,
   Plus,
   Share2,
+  Shield,
   Volume2,
 } from 'lucide-react';
 import type { StudioModuleId } from '../types/studio';
 import { useStudio } from '../context/StudioContext';
+import { useAuth } from '../auth/AuthContext';
 import { countCompleteQuestions } from '../engine/timeline';
 
 interface NavItem {
@@ -87,8 +89,9 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function SidebarNav() {
-  const { activeModule, setActiveModule, activeProject, workspace, setWizardOpen } =
+  const { activeModule, setActiveModule, activeProject, workspace, setWizardOpen, setAccountModalOpen } =
     useStudio();
+  const { profile, isGuest } = useAuth();
   const completedQuizCount = countCompleteQuestions(activeProject.quizQuestions);
 
   return (
@@ -166,6 +169,20 @@ export function SidebarNav() {
           <span>Saved Projects</span>
           <span className="text-slate-200">{workspace.projects.length}</span>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setAccountModalOpen(true)}
+          className="w-full mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-left hover:opacity-90 transition-opacity"
+        >
+          <div className="flex items-center gap-1.5 min-w-0">
+            <div className={`w-2 h-2 rounded-full shrink-0 ${!isGuest ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            <span className="text-[11px] text-slate-300 font-medium truncate">
+              {!isGuest && profile ? profile.name : 'Guest Mode (Local)'}
+            </span>
+          </div>
+          <span className="text-[10px] text-[#D4AF37] font-semibold shrink-0">Account</span>
+        </button>
       </div>
     </aside>
   );

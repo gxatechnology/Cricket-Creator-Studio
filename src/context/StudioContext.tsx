@@ -118,6 +118,8 @@ interface StudioContextValue {
   setWizardOpen: (open: boolean) => void;
   commandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
+  accountModalOpen: boolean;
+  setAccountModalOpen: (open: boolean) => void;
   selectedQuizIndex: number;
   setSelectedQuizIndex: (idx: number) => void;
   // Phase 3 Render Pipeline & Queue
@@ -170,6 +172,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => new Date().toISOString());
   const [wizardOpen, setWizardOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [selectedQuizIndex, setSelectedQuizIndex] = useState(0);
 
   // Phase 3 Render State
@@ -923,6 +926,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
     setWizardOpen,
     commandPaletteOpen,
     setCommandPaletteOpen,
+    accountModalOpen,
+    setAccountModalOpen,
     selectedQuizIndex,
     setSelectedQuizIndex,
     renderQueue,

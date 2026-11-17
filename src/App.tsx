@@ -1,9 +1,11 @@
 import React from 'react';
+import { AuthProvider } from './auth/AuthContext';
 import { StudioProvider, useStudio } from './context/StudioContext';
 import { SidebarNav } from './components/SidebarNav';
 import { TopStudioBar } from './components/TopStudioBar';
 import { NewProjectWizardModal } from './components/NewProjectWizardModal';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
+import { AccountModal } from './components/AccountModal';
 import { ProjectDashboard } from './components/modules/ProjectDashboard';
 import { TimelineModule } from './components/modules/TimelineModule';
 import { FieldDesignerModule } from './components/modules/FieldDesignerModule';
@@ -16,7 +18,7 @@ import { PublishAndAssetsModule } from './components/modules/PublishAndAssetsMod
 import { ProjectManagerModule } from './components/modules/ProjectManagerModule';
 
 function StudioWorkspaceShell() {
-  const { activeModule } = useStudio();
+  const { activeModule, accountModalOpen, setAccountModalOpen } = useStudio();
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-[#080E1A] text-slate-100 flex">
@@ -38,14 +40,20 @@ function StudioWorkspaceShell() {
       </div>
       <NewProjectWizardModal />
       <CommandPaletteModal />
+      <AccountModal
+        isOpen={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+      />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <StudioProvider>
-      <StudioWorkspaceShell />
-    </StudioProvider>
+    <AuthProvider>
+      <StudioProvider>
+        <StudioWorkspaceShell />
+      </StudioProvider>
+    </AuthProvider>
   );
 }

@@ -35,6 +35,7 @@ import {
   saveActiveRenderCheckpoint,
   type ServerRenderJobRecord,
 } from './jobPersistence';
+import { getRenderApiHeaders } from './renderApiHelper';
 
 export interface RenderGateResult {
   allowed: boolean;
@@ -136,6 +137,7 @@ export function startVideoExport(
     if (!jobId || typeof fetch === 'undefined') return;
     void fetch(`/api/render/jobs/${encodeURIComponent(jobId)}/cancel`, {
       method: 'POST',
+      headers: getRenderApiHeaders(),
     }).catch(() => {});
   };
 
@@ -346,7 +348,7 @@ export function startVideoExport(
             `/api/render/jobs/${encodeURIComponent(callbacks.resumeJobId)}/resume`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: getRenderApiHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify({ forceReclaim: true }),
               signal: fetchAbortCtrl.signal,
             }
@@ -386,7 +388,7 @@ export function startVideoExport(
         } else {
           const jobRes = await fetch('/api/render/jobs', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getRenderApiHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
               jobId: `ccs-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
               projectId: project.id,
@@ -547,7 +549,7 @@ export function startVideoExport(
                     `/api/render/jobs/${encodeURIComponent(serverJobId)}/segments/${seg.segmentIndex}?durationSec=${seg.durationSec.toFixed(6)}&renderDurationMs=${segDurMs}&startFrame=${seg.startFrame}&endFrame=${seg.endFrame}&frameCount=${seg.frameCount}`,
                     {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/octet-stream' },
+                      headers: getRenderApiHeaders({ 'Content-Type': 'application/octet-stream' }),
                       body: msg.buffer,
                       signal: fetchAbortCtrl.signal,
                     }
@@ -725,7 +727,7 @@ export function startVideoExport(
           `/api/render/jobs/${encodeURIComponent(serverJobId)}/finalize`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getRenderApiHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
               totalSegments: segments.length,
               audioEnabled: settings.audioEnabled,

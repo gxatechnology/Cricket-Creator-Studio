@@ -8,8 +8,10 @@ import {
   Smartphone,
   Square,
   Undo2,
+  User,
 } from 'lucide-react';
 import { useStudio } from '../context/StudioContext';
+import { useAuth } from '../auth/AuthContext';
 import type { AspectRatio, StudioModuleId } from '../types/studio';
 
 const MODULE_TITLES: Record<StudioModuleId, string> = {
@@ -37,7 +39,9 @@ export function TopStudioBar() {
     canRedo,
     saveStatus,
     setCommandPaletteOpen,
+    setAccountModalOpen,
   } = useStudio();
+  const { profile, isGuest } = useAuth();
 
   const cycleAspectRatio = () => {
     const order: AspectRatio[] = ['16:9', '9:16', '1:1'];
@@ -155,6 +159,39 @@ export function TopStudioBar() {
             <span>Export</span>
           </button>
         )}
+
+        <div className="h-5 w-[1px] bg-slate-800/80 mx-0.5" aria-hidden="true" />
+
+        {/* Creator Account Entry Point */}
+        <button
+          type="button"
+          onClick={() => setAccountModalOpen(true)}
+          title={!isGuest && profile ? `Creator: ${profile.name} (${profile.email})` : 'Account & Sign In'}
+          className="pl-2 pr-2.5 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 hover:border-[#D4AF37]/50 text-xs font-medium text-slate-200 flex items-center gap-2 transition-colors whitespace-nowrap shrink-0"
+        >
+          {!isGuest && profile ? (
+            <>
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  className="w-4 h-4 rounded-full object-cover border border-[#D4AF37]"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-4 h-4 rounded-full bg-[#D4AF37] text-[#080E1A] font-bold text-[9px] flex items-center justify-center">
+                  {profile.name.slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <span className="max-w-[85px] truncate font-medium">{profile.name}</span>
+            </>
+          ) : (
+            <>
+              <User className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-300">Account</span>
+            </>
+          )}
+        </button>
       </div>
     </header>
   );

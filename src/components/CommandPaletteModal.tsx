@@ -20,6 +20,7 @@ export function CommandPaletteModal() {
     setSelectedQuizIndex,
     activeProject,
     loadRendererQaProject,
+    setAccountModalOpen,
     undo,
     redo,
   } = useStudio();
@@ -36,6 +37,12 @@ export function CommandPaletteModal() {
 
   const actions = useMemo<CommandAction[]>(() => {
     const base: CommandAction[] = [
+      {
+        id: 'cmd-account',
+        label: 'Creator Account & Security (Google Sign In / Guest)',
+        group: 'Account',
+        run: () => setAccountModalOpen(true),
+      },
       {
         id: 'cmd-new-project',
         label: 'New Project Wizard',
