@@ -1,0 +1,8 @@
+{
+  "name": "Cricket Creator Studio",
+  "description": "Desktop-style cricket content creation suite with interactive field designer, 30-question quiz video builder, and landscape/portrait animation preview.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
