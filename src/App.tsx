@@ -1,59 +1,68 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
+import { RouterProvider, useRouter } from './router/RouterContext';
 import { AuthProvider } from './auth/AuthContext';
 import { StudioProvider, useStudio } from './context/StudioContext';
-import { SidebarNav } from './components/SidebarNav';
-import { TopStudioBar } from './components/TopStudioBar';
+import { HomePage } from './pages/HomePage';
+import { CreatorDashboardPage } from './pages/CreatorDashboardPage';
+import { LoginPage } from './pages/LoginPage';
 import { NewProjectWizardModal } from './components/NewProjectWizardModal';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
 import { AccountModal } from './components/AccountModal';
-import { ProjectDashboard } from './components/modules/ProjectDashboard';
-import { TimelineModule } from './components/modules/TimelineModule';
-import { FieldDesignerModule } from './components/modules/FieldDesignerModule';
-import { QuizBuilderModule } from './components/modules/QuizBuilderModule';
-import { BrandAndGraphicsModule } from './components/modules/BrandAndGraphicsModule';
-import { AudioWorkspaceModule } from './components/modules/AudioWorkspaceModule';
-import { AnimationPreviewModule } from './components/modules/AnimationPreviewModule';
-import { ExportCenterModule } from './components/modules/ExportCenterModule';
-import { PublishAndAssetsModule } from './components/modules/PublishAndAssetsModule';
-import { ProjectManagerModule } from './components/modules/ProjectManagerModule';
 
-function StudioWorkspaceShell() {
-  const { activeModule, accountModalOpen, setAccountModalOpen } = useStudio();
+// Route-level code splitting: keep the heavy video production engine
+// and WebCodecs render workers isolated from public homepage
+const StudioWorkspaceShell = lazy(() => import('./components/StudioWorkspaceShell'));
+
+function StudioLoadingScreen() {
+  return (
+    <div className="h-screen w-screen bg-[#080E1A] flex flex-col items-center justify-center space-y-4">
+      <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/20 border border-[#D4AF37]/50 flex items-center justify-center text-[#D4AF37] animate-pulse">
+        <div className="w-6 h-6 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+      </div>
+      <div className="text-sm font-display font-semibold text-slate-200">
+        Loading Cricket Creator Studio...
+      </div>
+      <div className="text-xs text-slate-500 font-mono">
+        Initializing audio synthesis & WebCodecs pipeline
+      </div>
+    </div>
+  );
+}
+
+function MainAppRoutes() {
+  const { currentPath } = useRouter();
+  const { accountModalOpen, setAccountModalOpen } = useStudio();
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#080E1A] text-slate-100 flex">
-      <SidebarNav />
-      <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <TopStudioBar />
-        <main className="flex-1 min-h-0 overflow-y-auto">
-          {activeModule === 'dashboard' && <ProjectDashboard />}
-          {activeModule === 'timeline' && <TimelineModule />}
-          {activeModule === 'field' && <FieldDesignerModule />}
-          {activeModule === 'quiz' && <QuizBuilderModule />}
-          {activeModule === 'graphics' && <BrandAndGraphicsModule />}
-          {activeModule === 'audio' && <AudioWorkspaceModule />}
-          {activeModule === 'preview' && <AnimationPreviewModule />}
-          {activeModule === 'export' && <ExportCenterModule />}
-          {activeModule === 'publish' && <PublishAndAssetsModule />}
-          {activeModule === 'projects' && <ProjectManagerModule />}
-        </main>
-      </div>
+    <>
+      {currentPath === '/' && <HomePage />}
+      {currentPath === '/dashboard' && <CreatorDashboardPage />}
+      {(currentPath === '/login' || currentPath === '/get-started') && <LoginPage />}
+      {currentPath.startsWith('/studio') && (
+        <Suspense fallback={<StudioLoadingScreen />}>
+          <StudioWorkspaceShell />
+        </Suspense>
+      )}
+
+      {/* Global Modals accessible across all routes */}
       <NewProjectWizardModal />
       <CommandPaletteModal />
       <AccountModal
         isOpen={accountModalOpen}
         onClose={() => setAccountModalOpen(false)}
       />
-    </div>
+    </>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <StudioProvider>
-        <StudioWorkspaceShell />
-      </StudioProvider>
-    </AuthProvider>
+    <RouterProvider>
+      <AuthProvider>
+        <StudioProvider>
+          <MainAppRoutes />
+        </StudioProvider>
+      </AuthProvider>
+    </RouterProvider>
   );
 }

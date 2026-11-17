@@ -12,6 +12,7 @@ import {
   Share2,
   Shield,
   Volume2,
+  X,
 } from 'lucide-react';
 import type { StudioModuleId } from '../types/studio';
 import { useStudio } from '../context/StudioContext';
@@ -28,27 +29,33 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   {
     id: 'dashboard',
-    label: 'Project Dashboard',
-    subtitle: 'Readiness & snapshots',
+    label: 'Overview & Readiness',
+    subtitle: 'Health & snapshots',
     icon: LayoutDashboard,
+  },
+  {
+    id: 'quiz',
+    label: 'Quiz Builder',
+    subtitle: 'Importer, AI assist & bank',
+    icon: HelpCircle,
+  },
+  {
+    id: 'field',
+    label: 'Field Designer',
+    subtitle: '23 presets & ball animation',
+    icon: Compass,
+  },
+  {
+    id: 'preview',
+    label: 'Animation Preview',
+    subtitle: '16:9, 9:16 & 1:1 stage',
+    icon: PlaySquare,
   },
   {
     id: 'timeline',
     label: 'Production Timeline',
     subtitle: 'Multi-track & Auto Build',
     icon: Film,
-  },
-  {
-    id: 'field',
-    label: 'Cricket Field Designer',
-    subtitle: '23 presets & scene library',
-    icon: Compass,
-  },
-  {
-    id: 'quiz',
-    label: 'Quiz Video Builder',
-    subtitle: 'Importer, AI assist & bank',
-    icon: HelpCircle,
   },
   {
     id: 'graphics',
@@ -63,60 +70,85 @@ const NAV_ITEMS: NavItem[] = [
     icon: Volume2,
   },
   {
-    id: 'preview',
-    label: 'Animation Preview',
-    subtitle: '16:9, 9:16 & 1:1 stage',
-    icon: PlaySquare,
-  },
-  {
     id: 'export',
-    label: 'Export / Render',
-    subtitle: 'MP4, Shorts & delivery',
+    label: 'Export Center',
+    subtitle: 'MP4, Shorts & render queue',
     icon: Clapperboard,
   },
   {
     id: 'publish',
-    label: 'Package & YouTube',
-    subtitle: 'Assets, ZIP & chapters',
+    label: 'Package & Assets',
+    subtitle: 'YouTube metadata & ZIP',
     icon: Share2,
   },
   {
     id: 'projects',
     label: 'Project Manager',
-    subtitle: 'Library & New Wizard',
+    subtitle: 'Library & snapshots',
     icon: FolderKanban,
   },
 ];
 
 export function SidebarNav() {
-  const { activeModule, setActiveModule, activeProject, workspace, setWizardOpen, setAccountModalOpen } =
-    useStudio();
+  const {
+    activeModule,
+    setActiveModule,
+    activeProject,
+    workspace,
+    setWizardOpen,
+    setAccountModalOpen,
+    mobileNavOpen,
+    setMobileNavOpen,
+  } = useStudio();
   const { profile, isGuest } = useAuth();
   const completedQuizCount = countCompleteQuestions(activeProject.quizQuestions);
 
-  return (
-    <aside className="w-[248px] shrink-0 bg-[#0A1120] border-r border-slate-800/80 flex flex-col justify-between h-full">
-      <div className="flex flex-col min-h-0 flex-1">
-        <div className="h-14 px-4 border-b border-slate-800/80 flex items-center gap-2.5 shrink-0">
-          <div className="w-7 h-7 rounded bg-[#D4AF37] text-[#080E1A] flex items-center justify-center font-display font-bold text-sm shrink-0">
-            CC
-          </div>
-          <span className="font-display font-bold text-sm tracking-tight text-slate-100 whitespace-nowrap truncate">
-            Cricket Creator Studio
-          </span>
-        </div>
+  const handleSelectModule = (id: StudioModuleId) => {
+    setActiveModule(id);
+    setMobileNavOpen(false);
+  };
 
-        <div className="px-3 pt-3 pb-1 shrink-0">
+  const navContent = (
+    <div className="flex flex-col justify-between h-full w-[260px] bg-[#0A1120] border-r border-slate-800/80">
+      <div className="flex flex-col min-h-0 flex-1">
+        {/* Studio Monogram Header */}
+        <div className="h-14 px-4 border-b border-slate-800/80 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded bg-[#D4AF37] text-[#080E1A] flex items-center justify-center font-display font-bold text-sm shrink-0">
+              CC
+            </div>
+            <span className="font-display font-bold text-sm tracking-tight text-slate-100 whitespace-nowrap truncate">
+              Production Studio
+            </span>
+          </div>
+
+          {/* Close button on mobile */}
           <button
             type="button"
-            onClick={() => setWizardOpen(true)}
-            className="w-full py-2 px-3 rounded-lg bg-[#D4AF37] hover:bg-[#E2BE48] text-[#080E1A] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
+            onClick={() => setMobileNavOpen(false)}
+            aria-label="Close navigation drawer"
+            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New Project</span>
+            <X className="w-4 h-4" />
           </button>
         </div>
 
+        {/* Action: New Project */}
+        <div className="px-3 pt-3 pb-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setWizardOpen(true);
+              setMobileNavOpen(false);
+            }}
+            className="w-full py-2 px-3 rounded-lg bg-[#D4AF37] hover:bg-[#E2BE48] text-[#080E1A] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Episode Wizard</span>
+          </button>
+        </div>
+
+        {/* Modules Navigation Links */}
         <nav className="p-2.5 space-y-0.5 overflow-y-auto flex-1" aria-label="Studio Modules">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -125,11 +157,11 @@ export function SidebarNav() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveModule(item.id)}
+                onClick={() => handleSelectModule(item.id)}
                 aria-current={isActive ? 'page' : undefined}
                 className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] ${
                   isActive
-                    ? 'bg-[#16233F] text-[#F4D57A] border border-[#D4AF37]/35'
+                    ? 'bg-[#16233F] text-[#F4D57A] border border-[#D4AF37]/35 shadow-sm'
                     : 'text-slate-300 hover:bg-[#111B33] hover:text-slate-100 border border-transparent'
                 }`}
               >
@@ -142,7 +174,7 @@ export function SidebarNav() {
                   <div className="text-[12.5px] font-semibold leading-tight whitespace-nowrap truncate">
                     {item.label}
                   </div>
-                  <div className="text-[10.5px] text-slate-400 leading-tight mt-0.5 whitespace-nowrap truncate">
+                  <div className="text-[10px] text-slate-400 leading-tight mt-0.5 whitespace-nowrap truncate">
                     {item.subtitle}
                   </div>
                 </div>
@@ -152,7 +184,8 @@ export function SidebarNav() {
         </nav>
       </div>
 
-      <div className="p-3.5 border-t border-slate-800/80 space-y-2 text-xs text-slate-400 shrink-0">
+      {/* Footer Info */}
+      <div className="p-3.5 border-t border-slate-800/80 space-y-2 text-xs text-slate-400 shrink-0 bg-[#080E1A]">
         <div>
           <div className="text-[10px] font-medium text-slate-400">Active Episode</div>
           <div className="text-slate-100 font-semibold mt-0.5 truncate text-xs" title={activeProject.title}>
@@ -172,7 +205,10 @@ export function SidebarNav() {
 
         <button
           type="button"
-          onClick={() => setAccountModalOpen(true)}
+          onClick={() => {
+            setAccountModalOpen(true);
+            setMobileNavOpen(false);
+          }}
           className="w-full mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-left hover:opacity-90 transition-opacity"
         >
           <div className="flex items-center gap-1.5 min-w-0">
@@ -184,6 +220,28 @@ export function SidebarNav() {
           <span className="text-[10px] text-[#D4AF37] font-semibold shrink-0">Account</span>
         </button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden md:flex shrink-0 h-full">{navContent}</aside>
+
+      {/* Mobile Drawer Overlay */}
+      {mobileNavOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          {/* Drawer content */}
+          <div className="relative z-10 animate-slide-right h-full shadow-2xl">
+            {navContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

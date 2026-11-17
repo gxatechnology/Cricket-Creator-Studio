@@ -1,7 +1,9 @@
 import React from 'react';
 import {
+  ArrowLeft,
   Clapperboard,
   Command,
+  Menu,
   Monitor,
   Play,
   Redo2,
@@ -12,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useStudio } from '../context/StudioContext';
 import { useAuth } from '../auth/AuthContext';
+import { useRouter } from '../router/RouterContext';
 import type { AspectRatio, StudioModuleId } from '../types/studio';
 
 const MODULE_TITLES: Record<StudioModuleId, string> = {
@@ -40,8 +43,10 @@ export function TopStudioBar() {
     saveStatus,
     setCommandPaletteOpen,
     setAccountModalOpen,
+    setMobileNavOpen,
   } = useStudio();
   const { profile, isGuest } = useAuth();
+  const { navigate } = useRouter();
 
   const cycleAspectRatio = () => {
     const order: AspectRatio[] = ['16:9', '9:16', '1:1'];
@@ -53,16 +58,41 @@ export function TopStudioBar() {
   };
 
   return (
-    <header className="h-14 shrink-0 bg-[#0C1426] border-b border-slate-800/80 px-5 flex items-center justify-between gap-6">
-      {/* Zone 1: Contextual Workspace Breadcrumb */}
+    <header className="h-14 w-full max-w-[100vw] overflow-x-hidden shrink-0 bg-[#0C1426] border-b border-slate-800/80 px-2 sm:px-5 flex items-center justify-between gap-2 sm:gap-6">
+      {/* Zone 1: Contextual Workspace Breadcrumb & Navigation */}
       <div className="flex items-center gap-2 min-w-0">
-        <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
-          {activeProject.settings.seriesName}
-        </span>
-        <span className="text-slate-600 shrink-0" aria-hidden="true">
+        {/* Mobile Nav Toggle */}
+        <button
+          type="button"
+          onClick={() => setMobileNavOpen((prev) => !prev)}
+          aria-label="Toggle navigation drawer"
+          className="md:hidden p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+        >
+          <Menu className="w-4 h-4" />
+        </button>
+
+        {/* Back to Dashboard Button */}
+        <button
+          type="button"
+          onClick={() => navigate('/dashboard')}
+          className="px-2.5 py-1.5 rounded-lg bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors shrink-0"
+          title="Return to Creator Dashboard"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <span className="hidden sm:inline">Dashboard</span>
+        </button>
+
+        <span className="text-slate-700 hidden sm:inline" aria-hidden="true">
           /
         </span>
-        <h1 className="text-sm font-display font-semibold text-slate-100 truncate">
+
+        <span className="text-xs text-slate-400 whitespace-nowrap shrink-0 hidden md:inline">
+          {activeProject.settings.seriesName}
+        </span>
+        <span className="text-slate-600 shrink-0 hidden md:inline" aria-hidden="true">
+          /
+        </span>
+        <h1 className="text-xs sm:text-sm font-display font-semibold text-slate-100 truncate">
           {MODULE_TITLES[activeModule]}
         </h1>
       </div>
@@ -121,12 +151,12 @@ export function TopStudioBar() {
       </div>
 
       {/* Zone 3: Format Cycle + Preview Launch */}
-      <div className="flex items-center gap-2.5 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         <button
           type="button"
           onClick={cycleAspectRatio}
           aria-label={`Switch aspect ratio, currently ${activeProject.settings.aspectRatio}`}
-          className="px-3 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1A284A] border border-slate-700/80 text-xs font-medium text-slate-200 flex items-center gap-2 transition-colors whitespace-nowrap shrink-0"
+          className="px-2 sm:px-3 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1A284A] border border-slate-700/80 text-xs font-medium text-slate-200 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap shrink-0"
         >
           {activeProject.settings.aspectRatio === '16:9' ? (
             <Monitor className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -142,10 +172,11 @@ export function TopStudioBar() {
           <button
             type="button"
             onClick={() => setActiveModule('preview')}
-            className="px-3.5 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 text-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 text-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            title="Open Animation Preview"
           >
             <Play className="w-3.5 h-3.5 fill-current text-[#D4AF37]" />
-            <span>Open Preview</span>
+            <span><span className="hidden sm:inline">Open </span>Preview</span>
           </button>
         )}
 
@@ -153,21 +184,22 @@ export function TopStudioBar() {
           <button
             type="button"
             onClick={() => setActiveModule('export')}
-            className="px-4 py-1.5 rounded-md bg-[#D4AF37] hover:bg-[#E2BE48] text-[#080E1A] text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            className="px-2.5 sm:px-4 py-1.5 rounded-md bg-[#D4AF37] hover:bg-[#E2BE48] text-[#080E1A] text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            title="Export Video"
           >
             <Clapperboard className="w-3.5 h-3.5" />
-            <span>Export</span>
+            <span className="hidden sm:inline">Export</span>
           </button>
         )}
 
-        <div className="h-5 w-[1px] bg-slate-800/80 mx-0.5" aria-hidden="true" />
+        <div className="h-5 w-[1px] bg-slate-800/80 mx-0.5 hidden sm:block" aria-hidden="true" />
 
         {/* Creator Account Entry Point */}
         <button
           type="button"
           onClick={() => setAccountModalOpen(true)}
           title={!isGuest && profile ? `Creator: ${profile.name} (${profile.email})` : 'Account & Sign In'}
-          className="pl-2 pr-2.5 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 hover:border-[#D4AF37]/50 text-xs font-medium text-slate-200 flex items-center gap-2 transition-colors whitespace-nowrap shrink-0"
+          className="px-2 sm:pl-2 sm:pr-2.5 py-1.5 rounded-md bg-[#131E38] hover:bg-[#1B2B4F] border border-slate-700/80 hover:border-[#D4AF37]/50 text-xs font-medium text-slate-200 flex items-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap shrink-0"
         >
           {!isGuest && profile ? (
             <>
@@ -183,12 +215,12 @@ export function TopStudioBar() {
                   {profile.name.slice(0, 1).toUpperCase()}
                 </div>
               )}
-              <span className="max-w-[85px] truncate font-medium">{profile.name}</span>
+              <span className="hidden sm:inline max-w-[85px] truncate font-medium">{profile.name}</span>
             </>
           ) : (
             <>
               <User className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-slate-300">Account</span>
+              <span className="hidden sm:inline text-slate-300">Account</span>
             </>
           )}
         </button>
